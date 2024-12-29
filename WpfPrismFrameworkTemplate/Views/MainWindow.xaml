@@ -1,0 +1,33 @@
+﻿<Window
+    x:Class="WpfPrismFrameworkTemplate.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:viewmodels="clr-namespace:WpfPrismFrameworkTemplate.ViewModels"
+    Title="{Binding Title}"
+    Width="825"
+    Height="450"
+    prism:ViewModelLocator.AutoWireViewModel="True">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <WrapPanel Grid.Row="0" VerticalAlignment="Center">
+            <Button Content="打开文件" Margin="10,0,10,0" Style="{StaticResource ButtonSuccess}" Command="{Binding OpenFileCmd}"/>
+            <hc:SearchBar Command="{Binding SearchCmd}" CommandParameter="{Binding Text,RelativeSource={RelativeSource Self}}" Width="200"
+                          Style="{StaticResource SearchBarExtend}"  hc:InfoElement.TitlePlacement="Left" hc:InfoElement.Title="搜索字段"/>
+        </WrapPanel>
+        <RichTextBox Grid.Row="1" IsReadOnly="True" VerticalScrollBarVisibility="Auto" 
+                     HorizontalScrollBarVisibility="Auto">
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text="{Binding HighlightedContent}" />
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+
+    </Grid>
+</Window>
