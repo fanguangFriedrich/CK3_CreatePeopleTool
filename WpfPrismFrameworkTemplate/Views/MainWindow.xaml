@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:hc="https://handyorg.github.io/handycontrol"
+    
     xmlns:viewmodels="clr-namespace:WpfPrismFrameworkTemplate.ViewModels"
     Title="{Binding Title}"
     Width="825"
@@ -14,20 +15,42 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <WrapPanel Grid.Row="0" VerticalAlignment="Center">
             <Button Content="打开文件" Margin="10,0,10,0" Style="{StaticResource ButtonSuccess}" Command="{Binding OpenFileCmd}"/>
             <hc:SearchBar Command="{Binding SearchCmd}" CommandParameter="{Binding Text,RelativeSource={RelativeSource Self}}" Width="200"
                           Style="{StaticResource SearchBarExtend}"  hc:InfoElement.TitlePlacement="Left" hc:InfoElement.Title="搜索字段"/>
         </WrapPanel>
-        <RichTextBox Grid.Row="1" IsReadOnly="True" VerticalScrollBarVisibility="Auto" 
+        <!--<RichTextBox Grid.Row="1" IsReadOnly="True" VerticalScrollBarVisibility="Auto" 
                      HorizontalScrollBarVisibility="Auto">
             <FlowDocument>
                 <Paragraph>
                     <Run Text="{Binding HighlightedContent}" />
                 </Paragraph>
             </FlowDocument>
-        </RichTextBox>
+        </RichTextBox>-->
+        <UniformGrid Rows="1" Columns="2" Grid.Row="1">
 
+            <ListBox ItemsSource="{Binding PeopleList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" SelectedItem="{Binding SelectPeople}">
+                <!-- ItemTemplate 用来定义每个列表项的显示方式 -->
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding IdName}" FontSize="16" FontWeight="Bold" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TabControl Foreground="Black" >
+                <hc:TabItem Header="属性设置"  Foreground="Black" FontWeight="Heavy">
+                    <hc:PropertyGrid SelectedObject="{Binding SelectPeople}" />
+                </hc:TabItem>
+                <hc:TabItem Header="内容显示"  Foreground="Black" FontWeight="Heavy">
+                    <TextBox Margin="5"/>
+                </hc:TabItem>
+            </TabControl>
+        </UniformGrid>
+        
     </Grid>
 </Window>

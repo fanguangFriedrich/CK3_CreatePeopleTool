@@ -2,6 +2,7 @@
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,12 +12,15 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using WpfPrismFrameworkTemplate.Model;
 
 namespace WpfPrismFrameworkTemplate.ViewModels
 {
 	public class MainWindowViewModel : BindableBase
 	{
-		private string _title = "CK3创建新伯爵领地工具";
+        public ObservableCollection<People> PeopleList { get; set; }
+        private People _SelectPeople;
+        private string _title = "CK3创建人物工具";
         private string _FileContent = "";
         private string _HighlightedContent = "";
         public DelegateCommand OpenFileCmd { get; private set; }
@@ -25,6 +29,24 @@ namespace WpfPrismFrameworkTemplate.ViewModels
 		{
             OpenFileCmd = new DelegateCommand(OpenFile);
             SearchCmd = new DelegateCommand<string>(SearchContent);
+            // 初始化 PeopleList 并添加一些数据
+            PeopleList = new ObservableCollection<People>
+            {
+                new People(name: "Confucius", dynasty: "Xue", religion: "Confucianism"),
+                new People(name: "Laozi", dynasty: "Xue", religion: "Daoism"),
+                new People(name: "Zhuangzi", dynasty: "Xue", religion: "Daoism"),
+                new People(name: "Mencius", dynasty: "Meng", religion: "Confucianism"),
+                new People(name: "Sunzi", dynasty: "Sun", religion: "Confucianism")
+            };
+
+        }
+
+
+
+        public People SelectPeople
+        {
+            get => _SelectPeople;
+            set => SetProperty(ref _SelectPeople, value);
         }
         public string HighlightedContent
         {
