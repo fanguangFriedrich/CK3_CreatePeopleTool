@@ -5,7 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:hc="https://handyorg.github.io/handycontrol"
-    
+    xmlns:ctrlz="clr-namespace:ControlzEx.Behaviors;assembly=ControlzEx"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:viewmodels="clr-namespace:WpfPrismFrameworkTemplate.ViewModels"
     Title="{Binding Title}"
     Width="825"
@@ -17,10 +18,10 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
-        <WrapPanel Grid.Row="0" VerticalAlignment="Center">
-            <Button Content="打开文件" Margin="10,0,10,0" Style="{StaticResource ButtonSuccess}" Command="{Binding OpenFileCmd}"/>
-            <hc:SearchBar Command="{Binding SearchCmd}" CommandParameter="{Binding Text,RelativeSource={RelativeSource Self}}" Width="200"
-                          Style="{StaticResource SearchBarExtend}"  hc:InfoElement.TitlePlacement="Left" hc:InfoElement.Title="搜索字段"/>
+        <WrapPanel Grid.Row="0" VerticalAlignment="Center" Background="DarkRed">
+            <Button Content="打开文件" Command="{Binding OpenFileCmd}" Margin="5" FontWeight="Heavy"/>
+            <hc:SearchBar Command="{Binding SearchCmd}" CommandParameter="{Binding Text,RelativeSource={RelativeSource Self}}" Width="200" Foreground="White"
+                          Style="{StaticResource SearchBarExtend.Small}"  hc:InfoElement.TitlePlacement="Left" hc:InfoElement.Title="搜索字段"/>
         </WrapPanel>
         <!--<RichTextBox Grid.Row="1" IsReadOnly="True" VerticalScrollBarVisibility="Auto" 
                      HorizontalScrollBarVisibility="Auto">
@@ -44,13 +45,46 @@
             </ListBox>
             <TabControl Foreground="Black" >
                 <hc:TabItem Header="属性设置"  Foreground="Black" FontWeight="Heavy">
-                    <hc:PropertyGrid SelectedObject="{Binding SelectPeople}" />
+                    <hc:ScrollViewer >
+                        <StackPanel>
+                            <hc:PropertyGrid SelectedObject="{Binding SelectPeople}" />
+                            <UniformGrid Rows="1" Columns="2">
+                                <TextBox Grid.Row="0"
+                                         Text="{Binding SelectPeople.BirthDay}"
+     Grid.Column="1"
+     Margin="4" 
+     Style="{StaticResource TextBoxExtend}"  
+     hc:TitleElement.Title="出生年月"
+     hc:TitleElement.TitlePlacement="Top">
+                                    <i:Interaction.Behaviors>
+                                        <ctrlz:TextBoxInputMaskBehavior InputMask="0000年00月00日" />
+                                    </i:Interaction.Behaviors>
+                                </TextBox>
+                                <TextBox Grid.Row="0"
+                                         Text="{Binding SelectPeople.DeathDays}"
+     Grid.Column="1"
+     Margin="4" 
+     Style="{StaticResource TextBoxExtend}"  
+     hc:TitleElement.Title="离世年月"
+     hc:TitleElement.TitlePlacement="Top">
+                                    <i:Interaction.Behaviors>
+                                        <ctrlz:TextBoxInputMaskBehavior InputMask="0000年00月00日" />
+                                    </i:Interaction.Behaviors>
+                                </TextBox>
+                            </UniformGrid>
+                            
+                        </StackPanel>
+                                           
+                    </hc:ScrollViewer>
+                    
                 </hc:TabItem>
                 <hc:TabItem Header="内容显示"  Foreground="Black" FontWeight="Heavy">
                     <TextBox Margin="5"/>
                 </hc:TabItem>
             </TabControl>
         </UniformGrid>
-        
+        <WrapPanel Grid.Row="2" Background="DarkRed">
+            <Button Content="生成" Margin="5" FontWeight="Heavy"/>
+        </WrapPanel>
     </Grid>
 </Window>

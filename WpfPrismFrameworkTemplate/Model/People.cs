@@ -6,6 +6,7 @@ namespace WpfPrismFrameworkTemplate.Model
     using Prism.Mvvm;
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     public class People : BindableBase
     {
@@ -13,8 +14,8 @@ namespace WpfPrismFrameworkTemplate.Model
         private string _name;
         private string _dynasty;
         private string _religion;
-        private DateTime _birthDay;
-        private DateTime _deathDay;
+        private string _birthDay;
+        private string _deathDay;
 
         // 静态字典，用来存储每个家族的递增计数器
         private static Dictionary<string, int> dynastyCounters = new Dictionary<string, int>();
@@ -40,6 +41,7 @@ namespace WpfPrismFrameworkTemplate.Model
             return $"{dynasty}_{dynastyCounters[dynasty]}";  // 生成IdName格式：Dynasty_1, Dynasty_2, ...
         }
 
+        [Browsable(false)]
         public string IdName
         {
             get => _IdName;
@@ -64,13 +66,15 @@ namespace WpfPrismFrameworkTemplate.Model
             set => SetProperty(ref _religion, value);
         }
 
-        public DateTime BirthDay
+        [Browsable(false)]
+        public string BirthDay
         {
             get => _birthDay;
             set => SetProperty(ref _birthDay, value);
         }
 
-        public DateTime DeathDay
+        [Browsable(false)]
+        public string DeathDays
         {
             get => _deathDay;
             set => SetProperty(ref _deathDay, value);

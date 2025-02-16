@@ -38,7 +38,7 @@ namespace WpfPrismFrameworkTemplate.ViewModels
                 new People(name: "Mencius", dynasty: "Meng", religion: "Confucianism"),
                 new People(name: "Sunzi", dynasty: "Sun", religion: "Confucianism")
             };
-
+            SelectPeople = PeopleList.FirstOrDefault();
         }
 
 
@@ -67,18 +67,19 @@ namespace WpfPrismFrameworkTemplate.ViewModels
         // 打开文件的逻辑
         private void OpenFile()
         {
-            // 打开文件对话框
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "选择文件",
-                Filter = "所有文件|*.*"
-            };
+            MessageBox.Show(SelectPeople.BirthDay);
+            //// 打开文件对话框
+            //var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            //{
+            //    Title = "选择文件",
+            //    Filter = "所有文件|*.*"
+            //};
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                FileContent = File.ReadAllText(openFileDialog.FileName);
-                HighlightedContent = FileContent; // 默认显示为原始内容
-            }
+            //if (openFileDialog.ShowDialog() == true)
+            //{
+            //    FileContent = File.ReadAllText(openFileDialog.FileName);
+            //    HighlightedContent = FileContent; // 默认显示为原始内容
+            //}
         }
 
         private void SearchContent(string searchTerm)
