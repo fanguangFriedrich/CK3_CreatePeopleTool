@@ -25,10 +25,12 @@ namespace WpfPrismFrameworkTemplate.ViewModels
         private string _HighlightedContent = "";
         public DelegateCommand OpenFileCmd { get; private set; }
         public DelegateCommand<string> SearchCmd { get; private set; }
+        public DelegateCommand CreatePeopleCmd { get; private set; }
         public MainWindowViewModel()
 		{
             OpenFileCmd = new DelegateCommand(OpenFile);
             SearchCmd = new DelegateCommand<string>(SearchContent);
+            CreatePeopleCmd = new DelegateCommand(CreatePeople);
             // 初始化 PeopleList 并添加一些数据
             PeopleList = new ObservableCollection<People>
             {
@@ -80,6 +82,13 @@ namespace WpfPrismFrameworkTemplate.ViewModels
             //    FileContent = File.ReadAllText(openFileDialog.FileName);
             //    HighlightedContent = FileContent; // 默认显示为原始内容
             //}
+        }
+
+        private void CreatePeople()
+        {
+            People oldSelectPeople = SelectPeople;
+            SelectPeople = new People();
+            SelectPeople = oldSelectPeople;
         }
 
         private void SearchContent(string searchTerm)
