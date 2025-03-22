@@ -2,85 +2,182 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
+using Prism.Regions;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using HandyControl.Controls;
+using System.Windows;
+using System.Windows.Controls;
+using System.Collections.ObjectModel;
+using WpfPrismFrameworkTemplate.Converter;
+using System.Linq;
+using Prism.Events;
+using GongSolutions.Wpf.DragDrop;
 
 namespace WpfPrismFrameworkTemplate.Model
 {
+    [TypeConverter(typeof(GenderTypeConverter))]
+    public enum GenderType
+    {
+        [Description("男性")]
+        Male,
+
+        [Description("女性")]
+        Female
+    }
+
     public class People : BindableBase
     {
         private string _idName = "";
         private string _name;
         private string _dynasty;
         private string _religion;
-        private string _birthDay;
-        private string _deathDay;
         private string _culture;  // 新增culture属性
+        private string _Mom = "";
+        private string _Dad = "";
+        private GenderType _Gender=GenderType.Male;
+        private ObservableCollection<LifeEvent> _LifeEventList=new ObservableCollection<LifeEvent>();
 
-        // 静态字典，用来存储每个家族的递增计数器
-        private static Dictionary<string, int> dynastyCounters = new Dictionary<string, int>();
-
-        public People(string name = "test_name", string dynasty = "test_dynasty", string religion = "test_religion", string culture = "test_culture")
+        public People(int id, string name = "test_name", GenderType gender=GenderType.Male, string dynasty = "test_dynasty", string religion = "test_religion", string culture = "test_culture")
         {
+            IdName = dynasty + "_" + id;
             Name = name;
+            Gender = gender;
             Dynasty = dynasty;
             Religion = religion;
             Culture = culture;
-            IdName = GenerateIdName(dynasty);
+
+            _LifeEventList.CollectionChanged += (s, e) => {
+                if (e.NewItems != null)
+                {
+                    foreach (LifeEvent item in e.NewItems)
+                    {
+                        item.PropertyChanged += Item_PropertyChanged;
+                    }
+                }
+                if (e.OldItems != null)
+                {
+                    foreach (LifeEvent item in e.OldItems)
+                    {
+                        item.PropertyChanged -= Item_PropertyChanged;
+                    }
+                }
+                RaisePropertyChanged(nameof(LifeEventList));
+            };
+
+            foreach (var item in _LifeEventList)
+            {
+                item.PropertyChanged += Item_PropertyChanged;
+            }
         }
 
-        private string GenerateIdName(string dynasty)
+        public People()
         {
-            if (!dynastyCounters.ContainsKey(dynasty))
+            _LifeEventList.CollectionChanged += (s, e) => {
+                if (e.NewItems != null)
+                {
+                    foreach (LifeEvent item in e.NewItems)
+                    {
+                        item.PropertyChanged += Item_PropertyChanged;
+                    }
+                }
+                if (e.OldItems != null)
+                {
+                    foreach (LifeEvent item in e.OldItems)
+                    {
+                        item.PropertyChanged -= Item_PropertyChanged;
+                    }
+                }
+                RaisePropertyChanged(nameof(LifeEventList));
+            };
+
+            // 为已有的元素注册事件
+            foreach (var item in _LifeEventList)
             {
-                dynastyCounters[dynasty] = 0;
+                item.PropertyChanged += Item_PropertyChanged;
             }
-            dynastyCounters[dynasty]++;
-            return $"{dynasty}_{dynastyCounters[dynasty]}";
+        }
+
+        public void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // 当任何LifeEvent的属性改变时，触发LifeEventList的属性改变通知
+            RaisePropertyChanged(nameof(LifeEventList));
         }
 
         [Browsable(false)]
         public string IdName
         {
             get => _idName;
-            private set => SetProperty(ref _idName, value);
+            set => SetProperty(ref _idName, value);
         }
 
+        [Browsable(false)]
+        public ObservableCollection<LifeEvent> LifeEventList
+        {
+            get => _LifeEventList;
+            private set => SetProperty(ref _LifeEventList, value);
+        }
+
+        [Browsable(false)]
+        public string Dad
+        {
+            get => _Dad;
+            set => SetProperty(ref _Dad, value);
+        }
+
+        [Browsable(false)]
+        public string Mom
+        {
+            get => _Mom;
+            set => SetProperty(ref _Mom, value);
+        }
+
+        [Category("个人信息")]
+        [DisplayName("姓名")]
         public string Name
         {
             get => _name;
             set => SetProperty(ref _name, value);
         }
 
+        [Editor(typeof(ReadOnlyTextPropertyEditor), typeof(ReadOnlyTextPropertyEditor))]
+        [Category("个人信息")]
+        [DisplayName("家族")]
         public string Dynasty
         {
             get => _dynasty;
             set => SetProperty(ref _dynasty, value);
         }
 
+        [Category("个人信息")]
+        [DisplayName("性别")]
+        public GenderType Gender
+        {
+            get => _Gender;
+            set => SetProperty(ref _Gender, value);
+        }
+
+        [Editor(typeof(ReadOnlyTextPropertyEditor), typeof(ReadOnlyTextPropertyEditor))]
+        [Category("宗教和文化")]
+        [DisplayName("宗教")]
+        [Browsable(false)]
         public string Religion
         {
             get => _religion;
             set => SetProperty(ref _religion, value);
         }
 
+        [Editor(typeof(ReadOnlyTextPropertyEditor), typeof(ReadOnlyTextPropertyEditor))]
+        [Category("宗教和文化")]
+        [DisplayName("文化")]
+        [Browsable(false)]
         public string Culture
         {
             get => _culture;
             set => SetProperty(ref _culture, value);
-        }
-
-        [Browsable(false)]
-        public string BirthDay
-        {
-            get => _birthDay;
-            set => SetProperty(ref _birthDay, value);
-        }
-
-        [Browsable(false)]
-        public string DeathDay
-        {
-            get => _deathDay;
-            set => SetProperty(ref _deathDay, value);
         }
 
         public override string ToString()
@@ -89,30 +186,44 @@ namespace WpfPrismFrameworkTemplate.Model
 
             // 主要信息
             sb.AppendLine($"{IdName} = {{");
-            sb.AppendLine($"\tname = {Name} # a lord");
-            sb.AppendLine($"\tdynasty = {Dynasty}");
+            sb.AppendLine($"\tname = {Name}");
+
+            // 仅在性别为女性时添加 female = yes
+            if (Gender == GenderType.Female)
+            {
+                sb.AppendLine("\tfemale = yes");
+            }
+
             sb.AppendLine($"\treligion = {Religion}");
+            sb.AppendLine($"\tculture = {Culture}");
 
-            // 只有在culture不为空时才添加
-            if (!string.IsNullOrEmpty(Culture))
+            if (Dad != "")
             {
-                sb.AppendLine($"\tculture = {Culture}");
+                sb.AppendLine($"\tfather = {Dad}");
             }
 
-            // 出生信息
-            if (!string.IsNullOrEmpty(BirthDay))
+            if (Mom != "")
             {
-                sb.AppendLine($"\t{BirthDay} = {{");
-                sb.AppendLine("\t\tbirth = yes");
-                sb.AppendLine("\t}");
+                sb.AppendLine($"\tmother = {Mom}");
             }
 
-            // 死亡信息
-            if (!string.IsNullOrEmpty(DeathDay))
+            // 遍历 LifeEventList，按照 EventDate 排序输出
+            foreach (var lifeEvent in LifeEventList.OrderBy(e => e.EventDate))
             {
-                sb.AppendLine($"\t{DeathDay} = {{");
-                sb.AppendLine("\t\tdeath = yes");
-                sb.AppendLine("\t}");
+                switch (lifeEvent.EventType)
+                {
+                    case LifeEventType.Marriage:
+                        MarriageEvent marriageEvent= lifeEvent as MarriageEvent;
+                        sb.AppendLine($"\t{lifeEvent.EventDate} = {{ add_spouse = {marriageEvent.Spouse} }}");
+                        break;
+
+                    case LifeEventType.Birth:
+                    case LifeEventType.Death:
+                    default:
+                        sb.AppendLine($"\t{lifeEvent.EventDate} = {{ {lifeEvent.EventType.ToString().ToLower()} = yes }}");
+                        break ;
+                }
+                
             }
 
             sb.Append("}");

@@ -6,8 +6,6 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using WpfPrismFrameworkTemplate.Helper;
-using WpfPrismFrameworkTemplate.ViewModels;
 using WpfPrismFrameworkTemplate.Views;
 
 namespace WpfPrismFrameworkTemplate
@@ -24,10 +22,7 @@ namespace WpfPrismFrameworkTemplate
 
 		protected override void RegisterTypes(IContainerRegistry containerRegistry)
 		{
-            containerRegistry.RegisterSingleton<MainWindowViewModel>();
-            containerRegistry.RegisterSingleton<IFamilyRepository, FamilyRepository>();
-            containerRegistry.RegisterDialog<AssignmentWindow>(nameof(AssignmentWindow));
-            containerRegistry.RegisterDialog<CommonAssignmentWindow>(nameof(CommonAssignmentWindow));
-        }
+
+		}
 	}
 }
