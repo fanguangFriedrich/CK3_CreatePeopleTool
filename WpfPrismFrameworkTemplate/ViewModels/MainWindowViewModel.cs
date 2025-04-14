@@ -673,6 +673,13 @@ namespace WpfPrismFrameworkTemplate.ViewModels
             //    FileContent = File.ReadAllText(openFileDialog.FileName);
             //    HighlightedContent = FileContent; // 默认显示为原始内容
             //}
+            _dialogService.ShowDialog(nameof(FamilyTreeWindow), arg =>
+            {
+                if (arg.Result == ButtonResult.OK)
+                {
+                    
+                }
+            });
         }
 
         private void AddPeople()

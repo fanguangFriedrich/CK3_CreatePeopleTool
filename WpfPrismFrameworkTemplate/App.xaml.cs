@@ -28,6 +28,7 @@ namespace WpfPrismFrameworkTemplate
             containerRegistry.RegisterSingleton<IFamilyRepository, FamilyRepository>();
             containerRegistry.RegisterDialog<AssignmentWindow>(nameof(AssignmentWindow));
             containerRegistry.RegisterDialog<CommonAssignmentWindow>(nameof(CommonAssignmentWindow));
+            containerRegistry.RegisterDialog<FamilyTreeWindow>(nameof(FamilyTreeWindow));
         }
 	}
 }
