@@ -15,6 +15,10 @@ Height="600">
             <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
         <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="1"></Border>
         <Border Grid.Column="1" BorderBrush="LightGray" BorderThickness="1"></Border>
         <UniformGrid Grid.Column="0" Columns="2" VerticalAlignment="Top">
@@ -41,13 +45,37 @@ Height="600">
                     PreviewMouseLeftButtonUp="TextBlock_PreviewMouseLeftButtonUp"/>
            
         </UniformGrid>
-        <Canvas 
+        <ScrollViewer Grid.Column="1" Grid.RowSpan="2" Name="CanvasScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Grid Background="Transparent" MouseWheel="Canvas_MouseWheel">
+                <!-- 这个空的 Border 用于确保 Canvas 始终有足够的空间 -->
+                <Border Name="CanvasContainer" Width="3000" Height="3000">
+                    <Canvas x:Name="DestinationCanvas" Background="AliceBlue" AllowDrop="True" DragEnter="Canvas_DragEnter"
+                      Drop="Canvas_Drop" DragOver="Canvas_DragOver" MouseRightButtonDown="Canvas_MouseRightButtonDown">
+                        <!-- Canvas 现在应用了缩放变换 -->
+                        <Canvas.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="CanvasScaleTransform" ScaleX="1" ScaleY="1" />
+                                <TranslateTransform x:Name="CanvasTranslateTransform" X="0" Y="0" />
+                            </TransformGroup>
+                        </Canvas.RenderTransform>
+                    </Canvas>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- 添加缩放控制 -->
+        <UniformGrid Grid.Row="1" Columns="3" Rows="1">
+            <Button Content="+" Click="ZoomIn_Click" Margin="2"/>
+            <Button Content="-" Click="ZoomOut_Click" Margin="2"/>
+            <Button Content="Reset" Click="ZoomReset_Click" Margin="2"/>
+        </UniformGrid>
+        <!--<Canvas 
             x:Name="DestinationCanvas" 
             Grid.Column="1" 
             Background="White"
             AllowDrop="True" 
             DragEnter="Canvas_DragEnter"
             DragOver="Canvas_DragOver"
-            Drop="Canvas_Drop"/>
+            Drop="Canvas_Drop"/>-->
     </Grid>
 </UserControl>

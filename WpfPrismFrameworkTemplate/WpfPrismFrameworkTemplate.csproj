@@ -186,6 +186,7 @@
     <Compile Include="Model\EventModel.cs" />
     <Compile Include="Model\Family.cs" />
     <Compile Include="Model\FamilyContext.cs" />
+    <Compile Include="Model\InputDialog.cs" />
     <Compile Include="Model\LifeEvent.cs" />
     <Compile Include="Model\People.cs" />
     <Compile Include="ViewModels\AssignmentWindowViewModel.cs" />

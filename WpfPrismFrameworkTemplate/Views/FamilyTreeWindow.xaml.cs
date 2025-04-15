@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Collections.Generic;
 using System.Windows.Shapes;
 using WpfPrismFrameworkTemplate.Model;
+using System.Linq;
 
 namespace WpfPrismFrameworkTemplate.Views
 {
@@ -24,14 +25,28 @@ namespace WpfPrismFrameworkTemplate.Views
         // 连线相关变量
         private TextBlock _sourceElement;
         private bool _isConnecting;
-        private Line _previewLine;
+        private Path _previewLine;
         // 将原有的Dictionary<string, List<Line>>替换为更完善的结构
         private Dictionary<string, List<ConnectionLineInfo>> _connectionLinesInfo = new Dictionary<string, List<ConnectionLineInfo>>();
+
+        // 添加成员变量跟踪当前缩放级别
+        private double _currentScale = 1.0;
+        private Point _lastPanPoint;
+        private bool _isPanning = false;
+
+        private bool _isMoving = false;
+        private TextBlock _currentMovingElement = null;
+        private Point _dragOffset;
 
         public FamilyTreeWindow()
         {
             InitializeComponent();
             _connectionLinesInfo = new Dictionary<string, List<ConnectionLineInfo>>();
+
+            // 添加平移功能的鼠标事件
+            DestinationCanvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
+            DestinationCanvas.MouseLeftButtonUp += Canvas_MouseLeftButtonUp;
+            DestinationCanvas.MouseMove += Canvas_MouseMove;
         }
 
         private void TextBlock_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -39,6 +54,7 @@ namespace WpfPrismFrameworkTemplate.Views
             if (!_isDragging) return;
 
             Point currentPosition = e.GetPosition(null);
+            currentPosition = ApplyInverseTransform(currentPosition);
             Vector diff = _startPoint - currentPosition;
 
             // 如果移动超过了拖拽阈值，开始拖拽操作
@@ -145,6 +161,9 @@ namespace WpfPrismFrameworkTemplate.Views
                 // 获取放置的坐标位置
                 Point dropPosition = e.GetPosition(DestinationCanvas);
 
+                // 应用逆变换来调整位置
+                dropPosition = ApplyInverseTransform(dropPosition);
+
                 // 将新的TextBlock添加到Canvas中
                 DestinationCanvas.Children.Add(newTextBlock);
 
@@ -241,41 +260,32 @@ namespace WpfPrismFrameworkTemplate.Views
             _isConnecting = true;
 
             // 创建预览线
-            _previewLine = new Line
-            {
-                Stroke = Brushes.Blue,
-                StrokeThickness = 2,
-                StrokeDashArray = new DoubleCollection(new double[] { 4, 2 })
-            };
-
-            // 设置线的起点
             Point sourceCenter = GetElementCenter(source);
-            _previewLine.X1 = sourceCenter.X;
-            _previewLine.Y1 = sourceCenter.Y;
-            _previewLine.X2 = sourceCenter.X;
-            _previewLine.Y2 = sourceCenter.Y;
+            _previewLine = CreateConnectionLine(sourceCenter, sourceCenter, Brushes.Gray, 1);
 
-            // 将预览线添加到Canvas
+            // 添加到Canvas
             DestinationCanvas.Children.Add(_previewLine);
 
-            // 添加Canvas的鼠标移动事件用于更新预览线
+            // 设置鼠标事件处理
             DestinationCanvas.MouseMove += Canvas_MouseMoveForConnection;
-
-            // 添加Canvas的鼠标右键点击事件用于取消连线
             DestinationCanvas.MouseRightButtonDown += Canvas_MouseRightButtonDownForConnection;
 
-            // 更改鼠标指针
+            // 更改光标以指示连接模式
             this.Cursor = Cursors.Cross;
         }
 
         // 鼠标移动时更新预览线
         private void Canvas_MouseMoveForConnection(object sender, MouseEventArgs e)
         {
-            if (_isConnecting && _previewLine != null)
+            if (_isConnecting && _sourceElement != null && _previewLine != null)
             {
-                Point mousePos = e.GetPosition(DestinationCanvas);
-                _previewLine.X2 = mousePos.X;
-                _previewLine.Y2 = mousePos.Y;
+                Point sourceCenter = GetElementCenter(_sourceElement);
+                Point currentPosition = e.GetPosition(DestinationCanvas);
+
+                // 重新创建带箭头的预览线
+                DestinationCanvas.Children.Remove(_previewLine);
+                _previewLine = CreateConnectionLine(sourceCenter, currentPosition, Brushes.Gray, 1);
+                DestinationCanvas.Children.Add(_previewLine);
             }
         }
 
@@ -298,11 +308,8 @@ namespace WpfPrismFrameworkTemplate.Views
                 _previewLine = null;
             }
 
-            // 移除事件处理器
             DestinationCanvas.MouseMove -= Canvas_MouseMoveForConnection;
             DestinationCanvas.MouseRightButtonDown -= Canvas_MouseRightButtonDownForConnection;
-
-            // 重置状态
             _isConnecting = false;
             _sourceElement = null;
             this.Cursor = Cursors.Arrow;
@@ -316,27 +323,15 @@ namespace WpfPrismFrameworkTemplate.Views
             // 删除预览线
             DestinationCanvas.Children.Remove(_previewLine);
 
-            // 创建实际的连接线
-            Line connectionLine = new Line
-            {
-                Stroke = Brushes.Red,
-                StrokeThickness = 2
-            };
-
             // 设置线的起点和终点
             Point sourceCenter = GetElementCenter(_sourceElement);
             Point targetCenter = GetElementCenter(target);
 
-            connectionLine.X1 = sourceCenter.X;
-            connectionLine.Y1 = sourceCenter.Y;
-            connectionLine.X2 = targetCenter.X;
-            connectionLine.Y2 = targetCenter.Y;
-
-            // 设置线的Z轴顺序，确保在TextBlock下方绘制
-            Panel.SetZIndex(connectionLine, -1);
+            // 创建实际的连接线（带箭头）
+            Path connectionPath = CreateConnectionLine(sourceCenter, targetCenter, Brushes.Red, 2);
 
             // 将连接线添加到Canvas
-            DestinationCanvas.Children.Add(connectionLine);
+            DestinationCanvas.Children.Add(connectionPath);
 
             // 存储连接线信息
             string sourceId = _sourceElement.Tag.ToString();
@@ -345,7 +340,7 @@ namespace WpfPrismFrameworkTemplate.Views
             // 创建连接线信息对象
             ConnectionLineInfo lineInfo = new ConnectionLineInfo
             {
-                Line = connectionLine,
+                LinePath = connectionPath,
                 SourceId = sourceId,
                 TargetId = targetId
             };
@@ -382,10 +377,17 @@ namespace WpfPrismFrameworkTemplate.Views
         {
             double left = Canvas.GetLeft(element);
             double top = Canvas.GetTop(element);
+
+            
             double width = element.ActualWidth;
             double height = element.ActualHeight;
 
-            return new Point(left + width / 2, top + height / 2);
+            //return new Point(left + width / 2, top + height / 2);
+            // 计算中心点
+            return new Point(
+                left + element.ActualWidth / 2,
+                top + element.ActualHeight / 2
+            );
         }
 
         // 更新与特定元素相关的所有连接线
@@ -400,8 +402,6 @@ namespace WpfPrismFrameworkTemplate.Views
 
             foreach (var lineInfo in _connectionLinesInfo[elementId])
             {
-                Line line = lineInfo.Line;
-
                 // 确定此元素是源还是目标
                 bool isSource = lineInfo.SourceId == elementId;
 
@@ -426,24 +426,474 @@ namespace WpfPrismFrameworkTemplate.Views
                     Point otherCenter = GetElementCenter(otherElement);
 
                     // 更新连接线端点
+                    Path oldPath = lineInfo.LinePath;
+                    DestinationCanvas.Children.Remove(oldPath);
+
+                    Path newPath;
                     if (isSource)
                     {
-                        // 当前元素是源
-                        line.X1 = elementCenter.X;
-                        line.Y1 = elementCenter.Y;
-                        line.X2 = otherCenter.X;
-                        line.Y2 = otherCenter.Y;
+                        // 当前元素是源，箭头指向目标
+                        newPath = CreateConnectionLine(elementCenter, otherCenter, Brushes.Red, 2);
                     }
                     else
                     {
-                        // 当前元素是目标
-                        line.X1 = otherCenter.X;
-                        line.Y1 = otherCenter.Y;
-                        line.X2 = elementCenter.X;
-                        line.Y2 = elementCenter.Y;
+                        // 当前元素是目标，箭头来自源
+                        newPath = CreateConnectionLine(otherCenter, elementCenter, Brushes.Red, 2);
+                    }
+
+                    // 将新路径添加到Canvas
+                    DestinationCanvas.Children.Add(newPath);
+
+                    // 更新连接信息
+                    lineInfo.LinePath = newPath;
+                }
+            }
+        }
+
+        // 创建带箭头的连接线的方法
+        private Path CreateConnectionLine(Point start, Point end, Brush strokeColor, double strokeThickness)
+        {
+            // 创建几何图形路径
+            PathGeometry pathGeometry = new PathGeometry();
+            PathFigure pathFigure = new PathFigure();
+
+            // 设置线的起点
+            pathFigure.StartPoint = start;
+
+            // 添加直线段到终点
+            LineSegment lineSegment = new LineSegment(end, true);
+            pathFigure.Segments.Add(lineSegment);
+
+            // 将路径图形添加到几何图形中
+            pathGeometry.Figures.Add(pathFigure);
+
+            // 计算线的中点位置（将箭头放在中间）
+            Point midPoint = new Point(
+                (start.X + end.X) / 2,
+                (start.Y + end.Y) / 2
+            );
+
+            // 计算箭头方向的向量
+            Vector direction = Point.Subtract(end, start);
+            direction.Normalize();
+
+            // 箭头的两个侧翼点
+            const double arrowSize = 10;
+            Vector leftVector = new Vector(-direction.X * arrowSize + direction.Y * arrowSize / 2,
+                                          -direction.Y * arrowSize - direction.X * arrowSize / 2);
+            Vector rightVector = new Vector(-direction.X * arrowSize - direction.Y * arrowSize / 2,
+                                           -direction.Y * arrowSize + direction.X * arrowSize / 2);
+
+            // 使用中点作为箭头尖端
+            Point arrowTip = new Point(
+                midPoint.X + direction.X * arrowSize / 2,
+                midPoint.Y + direction.Y * arrowSize / 2
+            );
+
+            Point arrowLeft = Point.Add(arrowTip, leftVector);
+            Point arrowRight = Point.Add(arrowTip, rightVector);
+
+            // 创建箭头的路径图形
+            PathFigure arrowFigure = new PathFigure();
+            arrowFigure.StartPoint = arrowTip;
+            arrowFigure.Segments.Add(new LineSegment(arrowLeft, true));
+            arrowFigure.Segments.Add(new LineSegment(arrowRight, true));
+            arrowFigure.Segments.Add(new LineSegment(arrowTip, true));
+            arrowFigure.IsClosed = true;
+
+            // 将箭头路径添加到几何图形
+            pathGeometry.Figures.Add(arrowFigure);
+
+            // 创建Path对象并设置其属性
+            Path path = new Path
+            {
+                Data = pathGeometry,
+                Stroke = strokeColor,
+                StrokeThickness = strokeThickness,
+                Fill = strokeColor  // 填充箭头
+            };
+
+            // 设置Z索引使其低于TextBlock
+            Panel.SetZIndex(path, -1);
+
+            return path;
+        }
+
+        private void ZoomIn_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomCanvas(1.1);
+        }
+
+        private void ZoomOut_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomCanvas(0.9);
+        }
+
+        private void ZoomReset_Click(object sender, RoutedEventArgs e)
+        {
+            // 重置缩放级别
+            _currentScale = 1.0;
+            CanvasScaleTransform.ScaleX = 1.0;
+            CanvasScaleTransform.ScaleY = 1.0;
+
+            // 重置平移位置
+            CanvasTranslateTransform.X = 0;
+            CanvasTranslateTransform.Y = 0;
+        }
+
+        // 缩放方法
+        private void ZoomCanvas(double zoomFactor)
+        {
+            // 计算新的缩放值
+            double newScale = _currentScale * zoomFactor;
+
+            // 限制最大和最小缩放级别
+            if (newScale < 0.1) newScale = 0.1;
+            if (newScale > 5.0) newScale = 5.0;
+
+            // 更新缩放级别
+            _currentScale = newScale;
+
+            // 应用新的缩放
+            CanvasScaleTransform.ScaleX = _currentScale;
+            CanvasScaleTransform.ScaleY = _currentScale;
+        }
+
+        private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // 计算新的缩放值
+            double zoom = e.Delta > 0 ? 1.1 : 0.9;
+
+            // 限制最大和最小缩放级别
+            double newScale = _currentScale * zoom;
+            if (newScale < 0.1) newScale = 0.1;
+            if (newScale > 5.0) newScale = 5.0;
+
+            // 更新缩放级别
+            _currentScale = newScale;
+
+            // 应用新的缩放
+            CanvasScaleTransform.ScaleX = _currentScale;
+            CanvasScaleTransform.ScaleY = _currentScale;
+
+            // 防止事件继续传播
+            e.Handled = true;
+        }
+
+        // 处理平移操作开始
+        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 如果按下了Ctrl键，则启动平移模式
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                _isPanning = true;
+                _lastPanPoint = e.GetPosition(DestinationCanvas);
+                DestinationCanvas.CaptureMouse();
+                e.Handled = true;
+            }
+        }
+
+        // 处理平移操作结束
+        private void Canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isPanning)
+            {
+                _isPanning = false;
+                DestinationCanvas.ReleaseMouseCapture();
+                e.Handled = true;
+            }
+        }
+
+        // 处理平移时的鼠标移动
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            // 处理平移操作
+            if (_isPanning)
+            {
+                Point currentPoint = e.GetPosition(DestinationCanvas);
+                Vector delta = Point.Subtract(currentPoint, _lastPanPoint);
+
+                // 根据缩放级别调整平移速度
+                delta.X /= _currentScale;
+                delta.Y /= _currentScale;
+
+                // 更新平移变换
+                CanvasTranslateTransform.X += delta.X;
+                CanvasTranslateTransform.Y += delta.Y;
+
+                _lastPanPoint = currentPoint;
+                e.Handled = true;
+            }
+
+            // 如果已有连接相关的鼠标移动事件，确保与之不冲突
+            if (_isConnecting && !_isPanning)
+            {
+                // 这里是原有的连接预览逻辑
+                // Canvas_MouseMoveForConnection 应该在这里处理
+            }
+        }
+
+        // 添加辅助方法，用于在缩放时获取准确的位置
+        private Point ApplyInverseTransform(Point point)
+        {
+            // 应用逆变换来调整坐标
+            return new Point(
+                (point.X - CanvasTranslateTransform.X) / _currentScale,
+                (point.Y - CanvasTranslateTransform.Y) / _currentScale
+            );
+        }
+
+        private void Canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 如果已经在连接模式，右键点击取消连接操作
+            if (_isConnecting)
+            {
+                CancelConnection();
+                return;
+            }
+
+            // 检查点击位置是否在某个TextBlock上
+            Point clickPoint = e.GetPosition(DestinationCanvas);
+
+            // 应用逆变换来调整位置（考虑缩放和平移）
+            clickPoint = ApplyInverseTransform(clickPoint);
+
+            TextBlock clickedElement = null;
+
+            // 遍历Canvas中的所有元素
+            foreach (UIElement element in DestinationCanvas.Children)
+            {
+                if (element is TextBlock textBlock)
+                {
+                    double left = Canvas.GetLeft(textBlock);
+                    double top = Canvas.GetTop(textBlock);
+
+                    // 检查点击是否在TextBlock范围内
+                    if (clickPoint.X >= left && clickPoint.X <= left + textBlock.ActualWidth &&
+                        clickPoint.Y >= top && clickPoint.Y <= top + textBlock.ActualHeight)
+                    {
+                        clickedElement = textBlock;
+                        break;
                     }
                 }
             }
+
+            // 如果点击了TextBlock，显示上下文菜单
+            if (clickedElement != null)
+            {
+                ShowTextBlockContextMenu(clickedElement, e);
+            }
+            else
+            {
+                // 如果点击了空白区域，可以显示Canvas的上下文菜单
+                ShowCanvasContextMenu(e);
+            }
+
+            // 标记事件已处理
+            e.Handled = true;
+        }
+
+        // 显示TextBlock的上下文菜单
+        private void ShowTextBlockContextMenu(TextBlock textBlock, MouseButtonEventArgs e)
+        {
+            // 创建上下文菜单
+            ContextMenu contextMenu = new ContextMenu();
+
+            // 添加"开始连接"菜单项
+            MenuItem startConnectionItem = new MenuItem();
+            startConnectionItem.Header = "开始连接";
+            startConnectionItem.Click += (s, args) => StartConnection(textBlock);
+            contextMenu.Items.Add(startConnectionItem);
+
+            // 添加"编辑文本"菜单项
+            MenuItem editTextItem = new MenuItem();
+            editTextItem.Header = "编辑文本";
+            editTextItem.Click += (s, args) => EditTextBlock(textBlock);
+            contextMenu.Items.Add(editTextItem);
+
+            // 添加"删除节点"菜单项
+            MenuItem deleteItem = new MenuItem();
+            deleteItem.Header = "删除节点";
+            deleteItem.Click += (s, args) => DeleteTextBlock(textBlock);
+            contextMenu.Items.Add(deleteItem);
+
+            // 显示上下文菜单
+            contextMenu.IsOpen = true;
+        }
+
+        // 显示Canvas的上下文菜单
+        private void ShowCanvasContextMenu(MouseButtonEventArgs e)
+        {
+            // 创建上下文菜单
+            ContextMenu contextMenu = new ContextMenu();
+
+            // 添加"添加新节点"菜单项
+            MenuItem addNodeItem = new MenuItem();
+            addNodeItem.Header = "添加新节点";
+
+            // 获取鼠标点击位置（考虑缩放和平移）
+            Point clickPoint = e.GetPosition(DestinationCanvas);
+            clickPoint = ApplyInverseTransform(clickPoint);
+
+            addNodeItem.Click += (s, args) => AddNewTextBlock(clickPoint);
+            contextMenu.Items.Add(addNodeItem);
+
+            // 添加"重置视图"菜单项
+            MenuItem resetViewItem = new MenuItem();
+            resetViewItem.Header = "重置视图";
+            resetViewItem.Click += (s, args) => ZoomReset_Click(s, args);
+            contextMenu.Items.Add(resetViewItem);
+
+            // 显示上下文菜单
+            contextMenu.IsOpen = true;
+        }
+
+        // 编辑TextBlock文本
+        private void EditTextBlock(TextBlock textBlock)
+        {
+            // 这里可以实现编辑文本的逻辑
+            // 例如：弹出一个输入对话框
+
+            // 简单实现：
+            InputDialog dialog = new InputDialog("编辑节点文本", textBlock.Text);
+            if (dialog.ShowDialog() == true)
+            {
+                textBlock.Text = dialog.Answer;
+            }
+        }
+
+        // 删除TextBlock及其连接线
+        private void DeleteTextBlock(TextBlock textBlock)
+        {
+            string elementId = textBlock.Tag.ToString();
+
+            // 首先删除与此TextBlock相关的所有连接线
+            if (_connectionLinesInfo.ContainsKey(elementId))
+            {
+                foreach (var lineInfo in _connectionLinesInfo[elementId].ToList())
+                {
+                    // 从画布中移除连接线
+                    DestinationCanvas.Children.Remove(lineInfo.LinePath);
+
+                    // 从另一端的连接信息中也移除此连接
+                    string otherId = lineInfo.SourceId == elementId ? lineInfo.TargetId : lineInfo.SourceId;
+                    if (_connectionLinesInfo.ContainsKey(otherId))
+                    {
+                        _connectionLinesInfo[otherId].Remove(lineInfo);
+                    }
+
+                    // 从ViewModel中移除连接
+                    FamilyTreeWindowViewModel tmpviewModel = DataContext as FamilyTreeWindowViewModel;
+                    tmpviewModel?.RemoveConnection(lineInfo.SourceId, lineInfo.TargetId);
+                }
+
+                // 清空此元素的连接信息
+                _connectionLinesInfo.Remove(elementId);
+            }
+
+            // 从画布中移除TextBlock
+            DestinationCanvas.Children.Remove(textBlock);
+        }
+
+        // 添加新的TextBlock
+        private void AddNewTextBlock(Point position)
+        {
+            // 创建一个新的TextBlock
+            TextBlock newTextBlock = new TextBlock
+            {
+                Text = "新节点",
+                Background = Brushes.LightYellow,
+                Padding = new Thickness(10),
+                Tag = Guid.NewGuid().ToString() // 使用GUID作为唯一标识符
+            };
+
+            // 设置TextBlock的位置
+            Canvas.SetLeft(newTextBlock, position.X);
+            Canvas.SetTop(newTextBlock, position.Y);
+
+            // 添加鼠标事件处理
+            newTextBlock.MouseLeftButtonDown += TextBlock_MouseLeftButtonDown;
+            newTextBlock.MouseMove += TextBlock_MouseMove;
+            newTextBlock.MouseLeftButtonUp += TextBlock_MouseLeftButtonUp;
+
+            // 初始化连接线信息字典
+            _connectionLinesInfo[newTextBlock.Tag.ToString()] = new List<ConnectionLineInfo>();
+
+            // 将TextBlock添加到Canvas
+            DestinationCanvas.Children.Add(newTextBlock);
+
+            // 添加到ViewModel
+            FamilyTreeWindowViewModel viewModel = DataContext as FamilyTreeWindowViewModel;
+            viewModel?.NotifyTextBlockDropped(newTextBlock.Text, position ,newTextBlock.Tag.ToString());
+
+            // 立即编辑新节点的文本
+            EditTextBlock(newTextBlock);
+        }
+
+        // 添加TextBlock鼠标按下事件处理
+        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 获取触发事件的TextBlock
+            TextBlock textBlock = sender as TextBlock;
+            if (textBlock == null) return;
+
+            // 如果按下了Ctrl键，则不做任何操作，因为Ctrl+左键是用于画布平移的
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                return;
+            }
+
+            // 记录当前鼠标位置和偏移量
+            _isMoving = true;
+            _currentMovingElement = textBlock;
+
+            // 获取鼠标在TextBlock内的相对位置（考虑缩放和平移）
+            Point mousePosition = e.GetPosition(DestinationCanvas);
+            mousePosition = ApplyInverseTransform(mousePosition);
+
+            double left = Canvas.GetLeft(textBlock);
+            double top = Canvas.GetTop(textBlock);
+
+            _dragOffset = new Point(mousePosition.X - left, mousePosition.Y - top);
+
+            // 捕获鼠标以跟踪移动
+            textBlock.CaptureMouse();
+
+            // 将TextBlock置于最前（提高Z-Index）
+            Panel.SetZIndex(textBlock, 10);
+
+            // 标记事件已处理
+            e.Handled = true;
+        }
+
+        // 添加TextBlock鼠标释放事件处理
+        private void TextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            TextBlock textBlock = sender as TextBlock;
+            if (textBlock == null) return;
+
+            // 如果处于移动状态，则结束移动操作
+            if (_isMoving && _currentMovingElement == textBlock)
+            {
+                _isMoving = false;
+                _currentMovingElement = null;
+                textBlock.ReleaseMouseCapture();
+
+                // 恢复默认Z-Index
+                Panel.SetZIndex(textBlock, 1);
+
+                // 更新ViewModel中的节点位置
+                FamilyTreeWindowViewModel viewModel = DataContext as FamilyTreeWindowViewModel;
+                if (viewModel != null && textBlock.Tag != null)
+                {
+                    double left = Canvas.GetLeft(textBlock);
+                    double top = Canvas.GetTop(textBlock);
+                    viewModel.UpdateTextBlockPosition(textBlock.Tag.ToString(), left, top);
+                }
+            }
+
+            // 标记事件已处理
+            e.Handled = true;
         }
     }
 }

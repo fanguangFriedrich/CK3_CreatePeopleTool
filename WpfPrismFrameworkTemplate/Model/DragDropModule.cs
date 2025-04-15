@@ -15,7 +15,7 @@ namespace WpfPrismFrameworkTemplate.Model
     // 为了更可靠地存储连接线与TextBlock的关系，添加一个辅助类来存储连接信息
     public class ConnectionLineInfo
     {
-        public Line Line { get; set; }
+        public Path LinePath { get; set; }
         public string SourceId { get; set; }
         public string TargetId { get; set; }
     }
