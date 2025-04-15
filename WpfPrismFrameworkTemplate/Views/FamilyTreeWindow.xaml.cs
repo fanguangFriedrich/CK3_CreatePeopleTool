@@ -328,7 +328,7 @@ namespace WpfPrismFrameworkTemplate.Views
             Point targetCenter = GetElementCenter(target);
 
             // 创建实际的连接线（带箭头）
-            Path connectionPath = CreateConnectionLine(sourceCenter, targetCenter, Brushes.Red, 2);
+            Path connectionPath = CreateConnectionLine(sourceCenter, targetCenter, Brushes.Red, 1);
 
             // 将连接线添加到Canvas
             DestinationCanvas.Children.Add(connectionPath);
@@ -433,12 +433,12 @@ namespace WpfPrismFrameworkTemplate.Views
                     if (isSource)
                     {
                         // 当前元素是源，箭头指向目标
-                        newPath = CreateConnectionLine(elementCenter, otherCenter, Brushes.Red, 2);
+                        newPath = CreateConnectionLine(elementCenter, otherCenter, Brushes.Red, 1);
                     }
                     else
                     {
                         // 当前元素是目标，箭头来自源
-                        newPath = CreateConnectionLine(otherCenter, elementCenter, Brushes.Red, 2);
+                        newPath = CreateConnectionLine(otherCenter, elementCenter, Brushes.Red, 1);
                     }
 
                     // 将新路径添加到Canvas
@@ -451,19 +451,84 @@ namespace WpfPrismFrameworkTemplate.Views
         }
 
         // 创建带箭头的连接线的方法
-        private Path CreateConnectionLine(Point start, Point end, Brush strokeColor, double strokeThickness)
+        //private Path CreateConnectionLine(Point start, Point end, Brush strokeColor, double strokeThickness)
+        //{
+        //    // 创建几何图形路径
+        //    PathGeometry pathGeometry = new PathGeometry();
+        //    PathFigure pathFigure = new PathFigure();
+
+        //    // 设置线的起点
+        //    pathFigure.StartPoint = start;
+
+        //    // 添加直线段到终点
+        //    LineSegment lineSegment = new LineSegment(end, true);
+        //    pathFigure.Segments.Add(lineSegment);
+
+        //    // 将路径图形添加到几何图形中
+        //    pathGeometry.Figures.Add(pathFigure);
+
+        //    // 计算线的中点位置（将箭头放在中间）
+        //    Point midPoint = new Point(
+        //        (start.X + end.X) / 2,
+        //        (start.Y + end.Y) / 2
+        //    );
+
+        //    // 计算箭头方向的向量
+        //    Vector direction = Point.Subtract(end, start);
+        //    direction.Normalize();
+
+        //    // 箭头的两个侧翼点
+        //    const double arrowSize = 10;
+        //    Vector leftVector = new Vector(-direction.X * arrowSize + direction.Y * arrowSize / 2,
+        //                                  -direction.Y * arrowSize - direction.X * arrowSize / 2);
+        //    Vector rightVector = new Vector(-direction.X * arrowSize - direction.Y * arrowSize / 2,
+        //                                   -direction.Y * arrowSize + direction.X * arrowSize / 2);
+
+        //    // 使用中点作为箭头尖端
+        //    Point arrowTip = new Point(
+        //        midPoint.X + direction.X * arrowSize / 2,
+        //        midPoint.Y + direction.Y * arrowSize / 2
+        //    );
+
+        //    Point arrowLeft = Point.Add(arrowTip, leftVector);
+        //    Point arrowRight = Point.Add(arrowTip, rightVector);
+
+        //    // 创建箭头的路径图形
+        //    PathFigure arrowFigure = new PathFigure();
+        //    arrowFigure.StartPoint = arrowTip;
+        //    arrowFigure.Segments.Add(new LineSegment(arrowLeft, true));
+        //    arrowFigure.Segments.Add(new LineSegment(arrowRight, true));
+        //    arrowFigure.Segments.Add(new LineSegment(arrowTip, true));
+        //    arrowFigure.IsClosed = true;
+
+        //    // 将箭头路径添加到几何图形
+        //    pathGeometry.Figures.Add(arrowFigure);
+
+        //    // 创建Path对象并设置其属性
+        //    Path path = new Path
+        //    {
+        //        Data = pathGeometry,
+        //        Stroke = strokeColor,
+        //        StrokeThickness = strokeThickness,
+        //        Fill = strokeColor  // 填充箭头
+        //    };
+
+        //    // 设置Z索引使其低于TextBlock
+        //    Panel.SetZIndex(path, -1);
+
+        //    return path;
+        //}
+
+        private Path CreateConnectionLine(Point start, Point end, Brush strokeColor, double strokeThickness, string text = "测试")
         {
             // 创建几何图形路径
             PathGeometry pathGeometry = new PathGeometry();
             PathFigure pathFigure = new PathFigure();
-
             // 设置线的起点
             pathFigure.StartPoint = start;
-
             // 添加直线段到终点
             LineSegment lineSegment = new LineSegment(end, true);
             pathFigure.Segments.Add(lineSegment);
-
             // 将路径图形添加到几何图形中
             pathGeometry.Figures.Add(pathFigure);
 
@@ -489,7 +554,6 @@ namespace WpfPrismFrameworkTemplate.Views
                 midPoint.X + direction.X * arrowSize / 2,
                 midPoint.Y + direction.Y * arrowSize / 2
             );
-
             Point arrowLeft = Point.Add(arrowTip, leftVector);
             Point arrowRight = Point.Add(arrowTip, rightVector);
 
@@ -510,8 +574,81 @@ namespace WpfPrismFrameworkTemplate.Views
                 Data = pathGeometry,
                 Stroke = strokeColor,
                 StrokeThickness = strokeThickness,
-                Fill = strokeColor  // 填充箭头
+                Fill = strokeColor // 填充箭头
             };
+
+            // 添加文字标签（如果提供了文本）
+            if (!string.IsNullOrEmpty(text))
+            {
+                // 计算文字旋转角度，使其与线平行
+                double angle = Math.Atan2(end.Y - start.Y, end.X - start.X) * 180 / Math.PI;
+
+                // 确保文字始终正向显示（不倒置）
+                if (angle > 90 || angle < -90)
+                {
+                    // 如果角度会导致文字倒置，则旋转180度
+                    angle += 180;
+                    if (angle > 180) angle -= 360; // 保持角度在 -180 到 180 之间
+                }
+
+                // 创建文本路径
+                FormattedText formattedText = new FormattedText(
+                    text,
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    new Typeface("Arial"),
+                    20,
+                    Brushes.Black,
+                    VisualTreeHelper.GetDpi(Application.Current.MainWindow).PixelsPerDip);
+
+                // 计算文本的宽度和高度
+                double textWidth = formattedText.Width;
+                double textHeight = formattedText.Height;
+
+                // 计算垂直于线的向量（用于将文本放在箭头上方或下方）
+                Vector perpendicular = new Vector(-direction.Y, direction.X);
+                perpendicular.Normalize();
+
+                // 文本偏移距离（调整为适当的值使文本位于箭头上方或下方）
+                double textOffset = 15; // 根据需要调整
+
+                // 将文字放在箭头的正上方或正下方
+                Point textCenterPoint = new Point(
+                    midPoint.X + perpendicular.X * textOffset,
+                    midPoint.Y + perpendicular.Y * textOffset
+                );
+
+                // 调整文本位置，考虑到旋转和居中
+                Point textPosition = new Point(
+                    textCenterPoint.X - textWidth / 2,
+                    textCenterPoint.Y - textHeight / 2
+                );
+
+                // 创建文本的几何形状
+                Geometry textGeometry = formattedText.BuildGeometry(textPosition);
+
+                // 创建旋转变换
+                RotateTransform rotateTransform = new RotateTransform(angle, textCenterPoint.X, textCenterPoint.Y);
+                textGeometry = textGeometry.Clone();
+                textGeometry.Transform = rotateTransform;
+
+                // 将文本几何形状添加到路径中
+                PathGeometry textPathGeometry = textGeometry as PathGeometry;
+
+                // 如果文本几何形状不是PathGeometry类型，则进行转换
+                if (textPathGeometry == null)
+                {
+                    textPathGeometry = textGeometry.GetFlattenedPathGeometry();
+                }
+
+                foreach (PathFigure figure in textPathGeometry.Figures)
+                {
+                    pathGeometry.Figures.Add(figure);
+                }
+
+                // 重新设置Path数据
+                path.Data = pathGeometry;
+            }
 
             // 设置Z索引使其低于TextBlock
             Panel.SetZIndex(path, -1);

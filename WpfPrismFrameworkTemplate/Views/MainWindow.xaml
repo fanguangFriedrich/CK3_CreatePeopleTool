@@ -233,22 +233,6 @@ hc:TitleElement.TitlePlacement="Top"
                 <hc:TabItem Header="全部家族内容显示"  Foreground="Black" FontWeight="Heavy">
                     <TextBox Margin="5" Text="{Binding FamilyList, Converter={StaticResource AllFamilyToStringConverter}}" IsReadOnly="True"/>
                 </hc:TabItem>
-                <hc:TabItem Header="测试界面"  Foreground="Black" FontWeight="Heavy">
-                    <TreeView ItemsSource="{Binding TestPeopleList}">
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Name}" />
-                                    <TextBlock Text=" (父: " Margin="5,0,0,0" />
-                                    <TextBlock Text="{Binding Father.Name}" />
-                                    <TextBlock Text=", 母: " />
-                                    <TextBlock Text="{Binding Mother.Name}" />
-                                    <TextBlock Text=")" />
-                                </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </hc:TabItem>
             </TabControl>
         </Grid>
 
