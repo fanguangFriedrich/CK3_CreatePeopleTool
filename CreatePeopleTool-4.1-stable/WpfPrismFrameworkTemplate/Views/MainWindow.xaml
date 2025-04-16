@@ -25,8 +25,15 @@ xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
     <adonisControls:AdonisWindow.TitleBarContent>
         <WrapPanel Grid.Row="0" VerticalAlignment="Center" Background="DarkRed" HorizontalAlignment="Right">
             <CheckBox Content="与数据库同步" Visibility="Collapsed" IsChecked="{Binding EnableDatabaseSync}" Foreground="White" FontWeight="Heavy" Style="{StaticResource CheckBoxBaseStyle}"/>
-            <Button Style="{StaticResource ButtonIconCircular}" Content="这是一个按钮" hc:IconElement.Geometry="{StaticResource ResourceKey=FullScreenGeometry}"
-                    hc:BorderElement.CornerRadius="15" ToolTip="转换到图形化界面"   Command="{Binding OpenFileCmd}" />
+            <Button Style="{StaticResource ButtonWarning}" Background="#0000" BorderThickness="0" Foreground="Black"
+                    hc:BorderElement.CornerRadius="15" ToolTip="转换到图形化界面"   Command="{Binding OpenFileCmd}"
+                    >
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Images/tuxinghua.png"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
             
             <Menu HorizontalAlignment="Stretch" Background="DarkRed" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <MenuItem Header="生成" Foreground="White" FontWeight="Heavy">
