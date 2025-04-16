@@ -1,0 +1,34 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:Fluent="clr-namespace:Fluent"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    mc:Ignorable="d">
+    <ControlTemplate x:Key="Fluent.Ribbon.Templates.GalleryItem"
+                     TargetType="{x:Type Fluent:GalleryItem}">
+        <Border Background="{TemplateBinding Background}">
+            <ContentPresenter Margin="{TemplateBinding Padding}" />
+        </Border>
+    </ControlTemplate>
+
+    <Style x:Key="Fluent.Ribbon.Styles.GalleryItem"
+           TargetType="{x:Type Fluent:GalleryItem}">
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource Fluent.Ribbon.Styles.FocusVisual}" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="Template" Value="{DynamicResource Fluent.Ribbon.Templates.GalleryItem}" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.GalleryItem.Selected}" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.GalleryItem.MouseOver}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.GalleryItem.Pressed}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,159 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:Fluent="clr-namespace:Fluent"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    mc:Ignorable="d">
+    <Style x:Key="Fluent.Ribbon.Styles.ContextMenu"
+           TargetType="{x:Type Fluent:ContextMenu}">
+        <Setter Property="Foreground" Value="{DynamicResource Fluent.Ribbon.Brushes.LabelText}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Template" Value="{DynamicResource Fluent.Ribbon.Templates.FluentPopupMenu}" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
+    <!-- Default menu style for wpf context menu -->
+
+    <Style x:Key="Fluent.Ribbon.Styles.FluentRibbonDefaultContextMenu"
+           TargetType="{x:Type ContextMenu}">
+        <Setter Property="Foreground" Value="{DynamicResource Fluent.Ribbon.Brushes.LabelText}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Template" Value="{DynamicResource Fluent.Ribbon.Templates.PopupMenu}" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
+    <ControlTemplate x:Key="Fluent.Ribbon.Templates.FluentPopupMenu"
+                     TargetType="{x:Type Fluent:ContextMenu}">
+        <ControlTemplate.Resources>
+            <Style TargetType="{x:Type Separator}"
+                   BasedOn="{StaticResource Fluent.Ribbon.Styles.MenuSeparator}" />
+            <Style TargetType="{x:Type Fluent:GroupSeparatorMenuItem}"
+                   BasedOn="{StaticResource Fluent.Ribbon.Styles.MenuGroupSeparator}" />
+        </ControlTemplate.Resources>
+        <Grid HorizontalAlignment="Left"
+              VerticalAlignment="Top">
+            <Border HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Background="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Background}"
+                    BorderBrush="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Border}"
+                    BorderThickness="1"
+                    SnapsToDevicePixels="True">
+                <Grid HorizontalAlignment="Left"
+                      VerticalAlignment="Top">
+                    <Grid HorizontalAlignment="Left"
+                          VerticalAlignment="Top">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer x:Name="PART_ScrollViewer"
+                                      Style="{DynamicResource Fluent.Ribbon.Styles.MenuScrollViewer}"
+                                      Margin="1"
+                                      SnapsToDevicePixels="True"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="PART_ItemsHost"
+                                        Margin="0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        IsItemsHost="True"
+                                        Orientation="Vertical" />
+                        </ScrollViewer>
+                        <Border x:Name="resizeBorder"
+                                Grid.Row="1"
+                                Height="11"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top"
+                                Background="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Resize.Background}"
+                                BorderBrush="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Resize.Border}"
+                                BorderThickness="0 1 0 0">
+                            <Grid>
+                                <Thumb x:Name="PART_ResizeVerticalThumb"
+                                       Height="10"
+                                       Margin="0 0 0 -90"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Top"
+                                       Cursor="SizeNS"
+                                       Template="{DynamicResource Fluent.Ribbon.Templates.ResizeVerticalThumb}" />
+                                <Thumb x:Name="PART_ResizeBothThumb"
+                                       Width="10"
+                                       Height="10"
+                                       Margin="0 0 0 -90"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Top"
+                                       Cursor="SizeNWSE"
+                                       Template="{DynamicResource Fluent.Ribbon.Templates.ResizeBothThumb}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="FlowDirection" Value="RightToLeft">
+                <Setter TargetName="PART_ResizeBothThumb" Property="Cursor" Value="SizeNESW" />
+            </Trigger>
+            <Trigger Property="ResizeMode" Value="None">
+                <Setter TargetName="resizeBorder" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="ResizeMode" Value="Both">
+                <Setter TargetName="PART_ResizeBothThumb" Property="Visibility" Value="Visible" />
+                <Setter TargetName="PART_ResizeVerticalThumb" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="resizeBorder" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="ResizeMode" Value="Vertical">
+                <Setter TargetName="PART_ResizeBothThumb" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="PART_ResizeVerticalThumb" Property="Visibility" Value="Visible" />
+                <Setter TargetName="resizeBorder" Property="Visibility" Value="Visible" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="Fluent.Ribbon.Templates.PopupMenu"
+                     TargetType="{x:Type ContextMenu}">
+        <ControlTemplate.Resources>
+            <Style TargetType="{x:Type Separator}"
+                   BasedOn="{StaticResource Fluent.Ribbon.Styles.MenuSeparator}" />
+            <Style TargetType="{x:Type Fluent:GroupSeparatorMenuItem}"
+                   BasedOn="{StaticResource Fluent.Ribbon.Styles.MenuGroupSeparator}" />
+        </ControlTemplate.Resources>
+        <Grid HorizontalAlignment="Left"
+              VerticalAlignment="Top">
+            <Border HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Background="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Background}"
+                    BorderBrush="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Border}"
+                    BorderThickness="1"
+                    SnapsToDevicePixels="True">
+                <Grid HorizontalAlignment="Left"
+                      VerticalAlignment="Top">
+                    <Border VerticalAlignment="Stretch"
+                            BorderBrush="{DynamicResource Fluent.Ribbon.Brushes.DropDown.Background}"
+                            BorderThickness="1" />
+                    <Grid HorizontalAlignment="Left"
+                          VerticalAlignment="Top">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer x:Name="PART_ScrollViewer"
+                                      Style="{DynamicResource Fluent.Ribbon.Styles.MenuScrollViewer}"
+                                      Margin="1"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                      SnapsToDevicePixels="True">
+                            <StackPanel x:Name="PART_ItemsHost"
+                                        Grid.RowSpan="1"
+                                        Margin="0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        IsItemsHost="True" />
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+</ResourceDictionary>

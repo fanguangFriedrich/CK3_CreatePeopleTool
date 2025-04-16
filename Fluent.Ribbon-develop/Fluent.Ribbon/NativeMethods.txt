@@ -1,0 +1,15 @@
+GetClassLong
+GetFocus
+GetKeyboardState
+GetMonitorInfo
+LoadImage
+LoadLibrary
+LoadString
+MapVirtualKey
+MonitorFromRect
+ReleaseCapture
+SendMessage
+SetFocus
+ToUnicode
+
+WM_*

@@ -1,0 +1,292 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:Fluent="clr-namespace:Fluent"
+                    xmlns:controlzex="urn:controlzex"
+                    xmlns:converters="clr-namespace:Fluent.Converters"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    mc:Ignorable="d">
+
+    <ControlTemplate x:Key="Fluent.Ribbon.Templates.WindowCommands.CaptionButton"
+                     TargetType="{x:Type Button}">
+        <Grid Background="{TemplateBinding Background}">
+            <ContentPresenter x:Name="contentPresenter"
+                              Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True"
+                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding Path=IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                <Setter TargetName="contentPresenter" Property="Opacity" Value="0.75" />
+            </DataTrigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="contentPresenter" Property="Opacity" Value="1" />
+            </Trigger>
+            <Trigger Property="controlzex:NonClientControlProperties.IsNCMouseOver" Value="True">
+                <Setter TargetName="contentPresenter" Property="Opacity" Value="1" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource Fluent.Ribbon.Brushes.White}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="Fluent.Ribbon.Styles.WindowCommands.CaptionButton"
+           TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.WindowCommands.CaptionButton.Background}" />
+        <Setter Property="Fluent:RibbonProperties.MouseOverBackground" Value="{DynamicResource Fluent.Ribbon.Brushes.WindowCommands.CaptionButton.MouseOver.Background}" />
+        <Setter Property="Fluent:RibbonProperties.PressedBackground" Value="{DynamicResource Fluent.Ribbon.Brushes.WindowCommands.CaptionButton.Pressed.Background}" />
+        <Setter Property="Foreground" Value="{DynamicResource Fluent.Ribbon.Brushes.WindowCommands.CaptionButton.Foreground}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="Template" Value="{DynamicResource Fluent.Ribbon.Templates.WindowCommands.CaptionButton}" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Width" Value="46" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{Binding Path=(Fluent:RibbonProperties.MouseOverBackground), RelativeSource={RelativeSource Self}}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{Binding Path=(Fluent:RibbonProperties.PressedBackground), RelativeSource={RelativeSource Self}}" />
+            </Trigger>
+            <Trigger Property="controlzex:NonClientControlProperties.IsNCMouseOver" Value="True">
+                <Setter Property="Background" Value="{Binding Path=(Fluent:RibbonProperties.MouseOverBackground), RelativeSource={RelativeSource Self}}" />
+            </Trigger>
+            <Trigger Property="controlzex:NonClientControlProperties.IsNCPressed" Value="True">
+                <Setter Property="Background" Value="{Binding Path=(Fluent:RibbonProperties.PressedBackground), RelativeSource={RelativeSource Self}}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <ControlTemplate x:Key="Fluent.Ribbon.Templates.Button"
+                     TargetType="{x:Type Fluent:Button}">
+        <Border x:Name="border"
+                HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}">
+            <StackPanel x:Name="stackPanel"
+                        Margin="{TemplateBinding Padding}"
+                        Orientation="Vertical">
+                <Fluent:IconPresenter x:Name="iconImage"
+                                      Margin="0 2 0 0"
+                                      SmallIcon="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}}"
+                                      MediumIcon="{Binding MediumIcon, RelativeSource={RelativeSource TemplatedParent}}"
+                                      LargeIcon="{Binding LargeIcon, RelativeSource={RelativeSource TemplatedParent}}"
+                                      CustomSize="{Binding Path=(Fluent:RibbonProperties.CustomIconSize), RelativeSource={RelativeSource TemplatedParent}}"
+                                      IconSize="{Binding Path=(Fluent:RibbonProperties.IconSize), RelativeSource={RelativeSource TemplatedParent}}" />
+
+                <ContentControl x:Name="PART_HeaderContentHost"
+                                Margin="2 0 0 0"
+                                Content="{TemplateBinding Header}"
+                                ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
+                                Focusable="False" />
+            </StackPanel>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Size" Value="Small">
+                <Setter TargetName="PART_HeaderContentHost" Property="Margin" Value="2 0 2 0" />
+                <Setter TargetName="PART_HeaderContentHost" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="iconImage" Property="Margin" Value="0" />
+                <Setter TargetName="stackPanel" Property="Orientation" Value="Horizontal" />
+            </Trigger>
+            <Trigger Property="Size" Value="Middle">
+                <Setter TargetName="PART_HeaderContentHost" Property="Margin" Value="2 0 2 0" />
+                <Setter TargetName="PART_HeaderContentHost" Property="VerticalAlignment" Value="Center" />
+                <Setter TargetName="border" Property="VerticalAlignment" Value="Stretch" />
+                <Setter TargetName="iconImage" Property="Margin" Value="0" />
+                <Setter TargetName="iconImage" Property="VerticalAlignment" Value="Center" />
+                <Setter TargetName="stackPanel" Property="Orientation" Value="Horizontal" />
+                <Setter TargetName="stackPanel" Property="Width" Value="Auto" />
+            </Trigger>
+
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="border" Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.Pressed.Background}" />
+                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.Pressed.Border}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="PART_HeaderContentHost" Property="Opacity" Value="0.5" />
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsMouseOver" Value="True" />
+                    <Condition Property="IsPressed" Value="False" />
+                    <Condition Property="IsEnabled" Value="True" />
+                </MultiTrigger.Conditions>
+                <Setter TargetName="border" Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.MouseOver.Background}" />
+                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.MouseOver.Border}" />
+            </MultiTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="Fluent.Ribbon.Templates.Button.Simplified"
+                     TargetType="{x:Type Fluent:Button}">
+        <Border x:Name="border"
+                HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}">
+            <StackPanel x:Name="stackPanel"
+                        Margin="{TemplateBinding Padding}"
+                        VerticalAlignment="Stretch"
+                        Orientation="Horizontal">
+                <Grid x:Name="iconImageGrid"
+                      Margin="0"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+                    <Fluent:IconPresenter x:Name="iconImage"
+                                          SmallIcon="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}}"
+                                          MediumIcon="{Binding MediumIcon, RelativeSource={RelativeSource TemplatedParent}}"
+                                          LargeIcon="{Binding LargeIcon, RelativeSource={RelativeSource TemplatedParent}}"
+                                          CustomSize="{Binding Path=(Fluent:RibbonProperties.CustomIconSize), RelativeSource={RelativeSource TemplatedParent}}"
+                                          IconSize="{Binding Path=(Fluent:RibbonProperties.IconSize), RelativeSource={RelativeSource TemplatedParent}}" />
+                    <Border x:Name="iconImageBorder"
+                            Width="{Binding ActualWidth, ElementName=iconImage}"
+                            Height="{Binding ActualHeight, ElementName=iconImage}"
+                            BorderBrush="{DynamicResource Fluent.Ribbon.Brushes.Control.Border}"
+                            BorderThickness="1"
+                            Visibility="Collapsed" />
+                </Grid>
+
+                <ContentControl x:Name="PART_HeaderContentHost"
+                                Margin="2 0 0 0"
+                                Content="{TemplateBinding Header}"
+                                ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
+                                Focusable="False" />
+            </StackPanel>
+        </Border>
+        <ControlTemplate.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Size" Value="Small" />
+                    <Condition SourceName="iconImage" Property="OptimalIcon" Value="{x:Null}" />
+                </MultiTrigger.Conditions>
+                <Setter TargetName="iconImageBorder" Property="Visibility" Value="Visible" />
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Size" Value="Middle" />
+                    <Condition SourceName="iconImage" Property="OptimalIcon" Value="{x:Null}" />
+                </MultiTrigger.Conditions>
+                <Setter TargetName="iconImageBorder" Property="Visibility" Value="Visible" />
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Size" Value="Large" />
+                    <Condition SourceName="iconImage" Property="OptimalIcon" Value="{x:Null}" />
+                </MultiTrigger.Conditions>
+                <Setter TargetName="PART_HeaderContentHost" Property="Margin" Value="0" />
+                <Setter TargetName="iconImageGrid" Property="Visibility" Value="Collapsed" />
+            </MultiTrigger>
+
+            <Trigger Property="Size" Value="Small">
+                <Setter TargetName="PART_HeaderContentHost" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="stackPanel" Property="Margin" Value="4 0" />
+            </Trigger>
+            <Trigger Property="Size" Value="Middle">
+                <Setter TargetName="PART_HeaderContentHost" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="border" Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.Pressed.Background}" />
+                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.Pressed.Border}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="PART_HeaderContentHost" Property="Opacity" Value="0.5" />
+                <Setter TargetName="iconImageBorder" Property="BorderBrush" Value="{DynamicResource Fluent.Ribbon.Brushes.Control.Disabled.Border}" />
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsMouseOver" Value="True" />
+                    <Condition Property="IsPressed" Value="False" />
+                    <Condition Property="IsEnabled" Value="True" />
+                </MultiTrigger.Conditions>
+                <Setter TargetName="border" Property="Background" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.MouseOver.Background}" />
+                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Fluent.Ribbon.Brushes.Button.MouseOver.Border}" />
+            </MultiTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <DataTemplate x:Key="Fluent.Ribbon.DataTemplates.Button.Header">
+        <Fluent:TwoLineLabel HorizontalAlignment="Stretch"
+                             VerticalAlignment="Center"
+                             Text="{Binding}">
+            <Fluent:TwoLineLabel.Style>
+                <Style TargetType="Fluent:TwoLineLabel"
+                       BasedOn="{StaticResource Fluent.Ribbon.Styles.TwoLineLabel}">
+                    <Setter Property="HasTwoLines" Value="True" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Size, RelativeSource={RelativeSource AncestorType=Fluent:IRibbonControl}}" Value="Middle">
+                            <Setter Property="HasTwoLines" Value="False" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Size, RelativeSource={RelativeSource AncestorType=Fluent:IRibbonControl}}" Value="Small">
+                            <Setter Property="HasTwoLines" Value="False" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsSimplified, RelativeSource={RelativeSource AncestorType=Fluent:ISimplifiedRibbonControl}}" Value="True">
+                            <Setter Property="HasTwoLines" Value="False" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Fluent:TwoLineLabel.Style>
+        </Fluent:TwoLineLabel>
+    </DataTemplate>
+
+    <Style x:Key="Fluent.Ribbon.Styles.Button"
+           TargetType="{x:Type Fluent:Button}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Content" Value="{Binding Path=Header, RelativeSource={RelativeSource Self}, Mode=TwoWay}" />
+        <Setter Property="ContentTemplate" Value="{Binding Path=HeaderTemplate, RelativeSource={RelativeSource Self}, Mode=TwoWay}" />
+        <Setter Property="ContentTemplateSelector" Value="{Binding Path=HeaderTemplateSelector, RelativeSource={RelativeSource Self}, Mode=TwoWay}" />
+        <Setter Property="Fluent:RibbonProperties.IconSize" Value="Large" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource Fluent.Ribbon.Styles.FocusVisual}" />
+        <Setter Property="Foreground" Value="{DynamicResource Fluent.Ribbon.Brushes.LabelText}" />
+        <Setter Property="HeaderTemplate" Value="{DynamicResource Fluent.Ribbon.DataTemplates.Button.Header}" />
+        <Setter Property="Height" Value="68" />
+        <Setter Property="Margin" Value="{DynamicResource Fluent.Ribbon.Values.Default.Margin}" />
+        <Setter Property="Padding" Value="{DynamicResource Fluent.Ribbon.Values.Default.Padding}" />
+        <Setter Property="SnapsToDevicePixels" Value="False" />
+        <Setter Property="Template" Value="{DynamicResource Fluent.Ribbon.Templates.Button}" />
+        <Style.Triggers>
+            <Trigger Property="Size" Value="Large">
+                <Setter Property="Height" Value="68" />
+            </Trigger>
+            <Trigger Property="Size" Value="Middle">
+                <Setter Property="Fluent:RibbonProperties.IconSize" Value="Small" />
+                <Setter Property="Height" Value="22" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+            </Trigger>
+            <Trigger Property="Size" Value="Small">
+                <Setter Property="Fluent:RibbonProperties.IconSize" Value="Small" />
+                <Setter Property="Height" Value="22" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Width" Value="Auto" />
+            </Trigger>
+            <Trigger Property="IsSimplified" Value="True">
+                <Setter Property="Fluent:RibbonProperties.IconSize" Value="Medium" />
+                <Setter Property="Height" Value="Auto" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="MinHeight" Value="30" />
+                <Setter Property="Template" Value="{DynamicResource Fluent.Ribbon.Templates.Button.Simplified}" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+                <Setter Property="Width" Value="Auto" />
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsSimplified" Value="True" />
+                    <Condition Property="Size" Value="Small" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Fluent:RibbonProperties.IconSize" Value="Small" />
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>
